@@ -3182,42 +3182,7 @@ class AMP_Style_Sanitizer extends AMP_Base_Sanitizer {
 				$used_selector_count = 0;
 				$selectors           = [];
 				foreach ( $selectors_parsed as $selector => $parsed_selector ) {
-					$should_include = (
-						// If all class names are used in the doc.
-						(
-							empty( $parsed_selector[ self::SELECTOR_EXTRACTED_CLASSES ] )
-							||
-							$this->has_used_class_name( $parsed_selector[ self::SELECTOR_EXTRACTED_CLASSES ] )
-						)
-						&&
-						// If all IDs are used in the doc.
-						(
-							empty( $parsed_selector[ self::SELECTOR_EXTRACTED_IDS ] )
-							||
-							0 === count(
-								array_filter(
-									$parsed_selector[ self::SELECTOR_EXTRACTED_IDS ],
-									function( $id ) {
-										return ! $this->dom->getElementById( $id );
-									}
-								)
-							)
-						)
-						&&
-						// If tag names are present in the doc.
-						(
-							empty( $parsed_selector[ self::SELECTOR_EXTRACTED_TAGS ] )
-							||
-							$this->has_used_tag_names( $parsed_selector[ self::SELECTOR_EXTRACTED_TAGS ] )
-						)
-						&&
-						// If all attribute names are used in the doc.
-						(
-							empty( $parsed_selector[ self::SELECTOR_EXTRACTED_ATTRIBUTES ] )
-							||
-							$this->has_used_attributes( $parsed_selector[ self::SELECTOR_EXTRACTED_ATTRIBUTES ] )
-						)
-					);
+					$should_include = true;
 					$selectors[ $selector ] = $should_include;
 					if ( $should_include ) {
 						$used_selector_count++;
@@ -3349,26 +3314,6 @@ class AMP_Style_Sanitizer extends AMP_Base_Sanitizer {
 			// Skip duplicates.
 			if ( false === $this->pending_stylesheets[ $i ]['included'] ) {
 				continue;
-			}
-
-			// Report validation error if size is now too big.
-			if ( $current_concatenated_size + $this->pending_stylesheets[ $i ]['final_size'] > $max_bytes ) {
-				$validation_error = [
-					'code'      => self::STYLESHEET_TOO_LONG,
-					'type'      => AMP_Validation_Error_Taxonomy::CSS_ERROR_TYPE,
-					'spec_name' => self::STYLE_AMP_KEYFRAMES_GROUP_INDEX === $group ? self::STYLE_AMP_KEYFRAMES_SPEC_NAME : self::STYLE_AMP_CUSTOM_SPEC_NAME,
-				];
-				if ( isset( $this->pending_stylesheets[ $i ]['sources'] ) ) {
-					$validation_error['sources'] = $this->pending_stylesheets[ $i ]['sources'];
-				}
-
-				$data = [
-					'node' => $this->pending_stylesheets[ $i ]['element'],
-				];
-				if ( $this->should_sanitize_validation_error( $validation_error, $data ) ) {
-					$this->pending_stylesheets[ $i ]['included'] = false;
-					continue; // Skip to the next stylesheet.
-				}
 			}
 
 			if ( ! isset( $this->pending_stylesheets[ $i ]['included'] ) ) {
